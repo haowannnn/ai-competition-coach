@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  @apply bg-canvas text-ink;
+}
+
+@layer components {
+  /* Card: soft-shelled container, hairline border, lots of internal air. */
+  .card {
+    @apply rounded-xl2 bg-paper border border-ink-line shadow-soft;
+  }
+
+  /* Pills / tags — quiet, uppercase micro-labels. */
+  .pill {
+    @apply inline-flex items-center gap-1 rounded-full border border-ink-line
+      bg-paper px-2.5 py-0.5 text-[11px] font-medium tracking-wide text-ink-soft;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-2.5
+      text-sm font-medium text-paper transition-all hover:bg-black
+      disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-line
+      bg-paper px-5 py-2.5 text-sm font-medium text-ink-soft transition-colors hover:border-ink-faint;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint;
+  }
+}
+
+/* Recharts: mute default focus outlines for a cleaner canvas. */
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
+}
