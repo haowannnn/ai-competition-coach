@@ -9,6 +9,7 @@ const LINKS: { href: string; key: MessageKey }[] = [
   { href: "/", key: "nav.dashboard" },
   { href: "/practice", key: "nav.practice" },
   { href: "/mistakes", key: "nav.mistakes" },
+  { href: "/papers", key: "nav.papers" },
 ];
 
 export default function NavBar() {

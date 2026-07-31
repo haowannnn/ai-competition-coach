@@ -10,6 +10,7 @@ export const MESSAGES = {
   "nav.dashboard": { zh: "学情看板", en: "Dashboard" },
   "nav.practice": { zh: "上传批改", en: "Practice" },
   "nav.mistakes": { zh: "错题本", en: "Mistakes" },
+  "nav.papers": { zh: "历年真题", en: "Past Papers" },
   "footer.note": { zh: "AI Competition Coach · 产品原型", en: "AI Competition Coach · Prototype" },
 
   // Dashboard
@@ -110,6 +111,45 @@ export const MESSAGES = {
   "err.habitual": { zh: "习惯性错误", en: "Habitual slip" },
 
   "common.loading": { zh: "加载中…", en: "Loading…" },
+
+  // Past papers
+  "papers.title": { zh: "历年竞赛真题", en: "Past Competition Papers" },
+  "papers.subtitle": {
+    zh: "官方免费真题合集 · 点击即可下载 PDF。所有链接均指向主办方官方发布页面。",
+    en: "Official free past papers · click to download the PDF. All links point to the organizers' official sources.",
+  },
+  "papers.official": { zh: "官方真题", en: "Official archives" },
+  "papers.ownBooklet": { zh: "本站练习册", en: "Our practice booklet" },
+  "papers.booklet.desc": {
+    zh: "由本站原创的 18 道竞赛风格题目整理而成，含标准答案，可直接下载为 PDF 打印练习。",
+    en: "18 original contest-style problems written for this site, with model answers — download as a printable PDF.",
+  },
+  "papers.booklet.download": { zh: "下载练习册 PDF", en: "Download booklet PDF" },
+  "papers.problems": { zh: "题目 PDF", en: "Problems PDF" },
+  "papers.solutions": { zh: "解答 PDF", en: "Solutions PDF" },
+  "papers.viewOnOfficial": { zh: "官方页面", en: "Official page" },
+  "papers.allYears": { zh: "全部年份", en: "All years" },
+  "papers.official.note": {
+    zh: "真题版权归各主办方所有，本站仅提供官方免费下载入口，不转载或修改原文件。",
+    en: "Copyright belongs to each organizer. This site only links to their official free downloads — nothing is re-hosted or altered.",
+  },
+
+  // Booklet (print) page
+  "booklet.title": { zh: "竞赛数学练习册", en: "Competition Math Practice Booklet" },
+  "booklet.subtitle": {
+    zh: "AI Competition Coach · 原创题目合集",
+    en: "AI Competition Coach · Original problem set",
+  },
+  "booklet.print": { zh: "打印 / 保存为 PDF", en: "Print / Save as PDF" },
+  "booklet.back": { zh: "← 返回真题库", en: "← Back to papers" },
+  "booklet.problems": { zh: "题目", en: "Problems" },
+  "booklet.answers": { zh: "参考答案", en: "Answers" },
+  "booklet.problem": { zh: "第", en: "Problem" },
+  "booklet.problemUnit": { zh: "题", en: "" },
+  "booklet.printHint": {
+    zh: "在打印对话框中选择“另存为 PDF”即可下载。",
+    en: "In the print dialog, choose \"Save as PDF\" to download.",
+  },
 } as const;
 
 export type MessageKey = keyof typeof MESSAGES;

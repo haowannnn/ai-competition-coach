@@ -48,3 +48,31 @@ body {
 .recharts-surface:focus {
   outline: none;
 }
+
+/* --- Print / Save-as-PDF (booklet page) --- */
+@media print {
+  /* Hide chrome that shouldn't appear in the printed PDF. */
+  .no-print {
+    display: none !important;
+  }
+  /* Force a clean white page with black ink regardless of theme. */
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .print-page {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  /* Keep each problem/answer block from splitting across pages. */
+  .print-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Start the answers section on a fresh page. */
+  .print-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+}
