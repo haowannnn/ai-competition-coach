@@ -30,13 +30,24 @@ export default function PracticeClient() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load questions once
+  // Load questions once; if a category is already selected, auto-roll after load
   useEffect(() => {
     fetch("/api/questions")
       .then((r) => r.json())
       .then((data) => {
-        setQuestions(data.questions ?? []);
+        const qs: Question[] = data.questions ?? [];
+        setQuestions(qs);
+        // If the user already clicked a category while data was loading, pick now
+        setSelectedCat((cat) => {
+          if (cat) {
+            const pool = qs.filter((q) => q.category === cat);
+            const pick = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+            setSelected(pick);
+          }
+          return cat;
+        });
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Pick a random question from the chosen category
