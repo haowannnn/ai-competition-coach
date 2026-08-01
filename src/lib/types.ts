@@ -7,6 +7,18 @@ export type ConceptDomain = "number_theory" | "combinatorics" | "algebra" | "geo
 
 export type Difficulty = "easy" | "medium" | "hard";
 
+// Broad practice categories shown in the topic picker.
+export type Category =
+  | "permcomb"     // 排列与组合
+  | "arithmetic"   // 等差数列
+  | "geometric"    // 等比数列
+  | "number_theory"// 数论
+  | "geometry"     // 几何
+  | "algebra"      // 代数与方程
+  | "inequality"   // 不等式
+  | "functions"    // 函数
+  | "counting";    // 容斥与鸽笼
+
 // A specific concept tag (fine-grained), e.g. "complementary_counting".
 export interface ConceptTag {
   id: string; // machine id, e.g. "complementary_counting"
@@ -24,9 +36,10 @@ export interface Question {
   standardAnswer: string; // final answer + key rubric points (zh)
   standardAnswerEn: string;
   rubric: string; // grading guidance handed to the model (zh)
-  conceptTags: string[]; // ConceptTag ids
+  conceptTags: string[]; // ConceptTag ids — used as method hints (hidden by default)
   domain: ConceptDomain;
   difficulty: Difficulty;
+  category: Category;   // broad topic for the practice picker
 }
 
 // Structured result returned by the grading model (strict JSON contract).

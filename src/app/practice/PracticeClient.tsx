@@ -1,42 +1,67 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useLocale } from "@/components/LocaleContext";
 import { DifficultyBadge, DomainBadge, TagBadge } from "@/components/badges";
-import { questionTitle, questionContent } from "@/lib/i18n";
+import { questionContent } from "@/lib/i18n";
+import { CATEGORY_META } from "@/lib/seed";
 import type { Question } from "@/lib/types";
+import type { Category } from "@/lib/types";
+
+// Pick a random element from an array
+function pickRandom<T>(arr: T[]): T | null {
+  if (!arr.length) return null;
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 export default function PracticeClient() {
   const router = useRouter();
-  const params = useSearchParams();
   const { locale, t } = useLocale();
 
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [selectedId, setSelectedId] = useState<string>("");
+  const [selectedCat, setSelectedCat] = useState<Category | null>(null);
+  const [selected, setSelected] = useState<Question | null>(null);
+  const [hintsVisible, setHintsVisible] = useState(false);
+
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Load questions once
   useEffect(() => {
     fetch("/api/questions")
       .then((r) => r.json())
       .then((data) => {
-        const qs: Question[] = data.questions ?? [];
-        setQuestions(qs);
-        const fromUrl = params.get("questionId");
-        setSelectedId(fromUrl && qs.some((q) => q.id === fromUrl) ? fromUrl : qs[0]?.id ?? "");
+        setQuestions(data.questions ?? []);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const selected = useMemo(
-    () => questions.find((q) => q.id === selectedId) ?? null,
-    [questions, selectedId]
+  // Pick a random question from the chosen category
+  const rollQuestion = useCallback(
+    (cat: Category) => {
+      const pool = questions.filter((q) => q.category === cat);
+      setSelected(pickRandom(pool));
+      setHintsVisible(false);
+      setFile(null);
+      setPreview(null);
+      setError(null);
+    },
+    [questions]
   );
 
+  const handleCategoryClick = (cat: Category) => {
+    setSelectedCat(cat);
+    rollQuestion(cat);
+  };
+
+  const handleRoll = () => {
+    if (selectedCat) rollQuestion(selectedCat);
+  };
+
+  // File helpers
   const onPickFile = (f: File | null) => {
     setFile(f);
     setError(null);
@@ -65,6 +90,11 @@ export default function PracticeClient() {
     }
   };
 
+  const catEntries = Object.entries(CATEGORY_META) as [
+    Category,
+    (typeof CATEGORY_META)[Category],
+  ][];
+
   return (
     <div className="space-y-8">
       <div>
@@ -72,102 +102,153 @@ export default function PracticeClient() {
         <p className="mt-2 text-sm text-ink-faint">{t("practice.subtitle")}</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left: question selection + statement */}
-        <section className="card p-6">
-          <label className="eyebrow mb-2.5 block">{t("practice.select")}</label>
-          <div className="relative mb-5">
-            <select
-              value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
-              className="w-full appearance-none rounded-xl border border-ink-line bg-paper px-4 py-3 text-sm font-medium focus:border-ink-faint focus:outline-none"
+      {/* Category picker */}
+      <section>
+        <p className="eyebrow mb-3">{t("practice.category")}</p>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+          {catEntries.map(([cat, meta]) => (
+            <button
+              key={cat}
+              onClick={() => handleCategoryClick(cat)}
+              className={[
+                "flex flex-col items-center gap-1 rounded-xl border px-2 py-3 text-center transition-all",
+                selectedCat === cat
+                  ? "border-accent-600 bg-accent-600/10 text-accent-700 dark:text-accent-400"
+                  : "border-ink-line bg-paper text-ink-soft hover:border-ink-faint hover:bg-canvas",
+              ].join(" ")}
             >
-              {questions.map((q) => (
-                <option key={q.id} value={q.id}>
-                  {questionTitle(q, locale)}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink-faint">
-              ⌄
-            </span>
-          </div>
+              <span className="text-xl">{meta.emoji}</span>
+              <span className="text-[11px] font-medium leading-tight">
+                {locale === "zh" ? meta.label : meta.labelEn}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
 
-          {selected && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <DomainBadge domain={selected.domain} />
-                <DifficultyBadge difficulty={selected.difficulty} />
-              </div>
-              <div className="rounded-xl bg-canvas px-5 py-5">
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
-                  {questionContent(selected, locale)}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {selected.conceptTags.map((tag) => (
-                  <TagBadge key={tag} tagId={tag} />
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Right: upload */}
-        <section className="card p-6">
-          <label className="eyebrow mb-2.5 block">{t("practice.uploadLabel")}</label>
-
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-ink-line px-6 py-12 text-center transition-colors hover:border-ink-faint hover:bg-canvas/60"
-          >
-            {preview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={preview}
-                alt="preview"
-                className="max-h-64 rounded-lg border border-ink-line object-contain"
-              />
-            ) : (
-              <>
-                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-canvas text-2xl">
-                  ↑
-                </span>
-                <div>
-                  <p className="text-sm font-medium text-ink-soft">{t("practice.dropTitle")}</p>
-                  <p className="mt-0.5 text-xs text-ink-faint">{t("practice.dropHint")}</p>
+      {/* Question + upload panel (only shown after category is chosen) */}
+      {selectedCat && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Left: question statement */}
+          <section className="card p-6">
+            {selected ? (
+              <div className="space-y-4">
+                {/* Title row */}
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="text-[15px] font-semibold leading-snug">
+                    {locale === "zh" ? selected.title : (selected.titleEn ?? selected.title)}
+                  </h2>
+                  <button
+                    onClick={handleRoll}
+                    className="shrink-0 rounded-lg border border-ink-line bg-paper px-3 py-1.5 text-xs font-medium text-ink-soft transition hover:border-ink-faint hover:bg-canvas"
+                    title={t("practice.roll")}
+                  >
+                    {t("practice.roll")}
+                  </button>
                 </div>
-              </>
+
+                {/* Badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <DomainBadge domain={selected.domain} />
+                  <DifficultyBadge difficulty={selected.difficulty} />
+                </div>
+
+                {/* Question content */}
+                <div className="rounded-xl bg-canvas px-5 py-5">
+                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
+                    {questionContent(selected, locale)}
+                  </p>
+                </div>
+
+                {/* Method hints (hidden by default) */}
+                {selected.conceptTags.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setHintsVisible((v) => !v)}
+                      className="text-xs font-medium text-accent-600 hover:underline"
+                    >
+                      {hintsVisible ? t("practice.hint.hide") : t("practice.hint.show")}
+                    </button>
+                    {hintsVisible && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selected.conceptTags.map((tag) => (
+                          <TagBadge key={tag} tagId={tag} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="py-8 text-center text-sm text-ink-faint">
+                {t("practice.noQs")}
+              </p>
             )}
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
-          />
+          </section>
 
-          {file && (
-            <p className="mt-3 truncate text-xs text-ink-faint">
-              {t("practice.selected")}: {file.name}
-              <button onClick={() => onPickFile(null)} className="ml-2 text-accent-600 hover:underline">
-                {t("practice.remove")}
-              </button>
-            </p>
-          )}
+          {/* Right: upload */}
+          <section className="card p-6">
+            <label className="eyebrow mb-2.5 block">{t("practice.uploadLabel")}</label>
 
-          {error && (
-            <p className="mt-3 rounded-lg bg-bad/[0.06] px-3 py-2 text-sm text-bad">{error}</p>
-          )}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-ink-line px-6 py-12 text-center transition-colors hover:border-ink-faint hover:bg-canvas/60"
+            >
+              {preview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={preview}
+                  alt="preview"
+                  className="max-h-64 rounded-lg border border-ink-line object-contain"
+                />
+              ) : (
+                <>
+                  <span className="grid h-14 w-14 place-items-center rounded-2xl bg-canvas text-2xl">
+                    ↑
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-ink-soft">{t("practice.dropTitle")}</p>
+                    <p className="mt-0.5 text-xs text-ink-faint">{t("practice.dropHint")}</p>
+                  </div>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+            />
 
-          <button onClick={onSubmit} disabled={submitting} className="btn-primary mt-6 w-full">
-            {submitting ? t("practice.submitting") : t("practice.submit")}
-          </button>
-          <p className="mt-2.5 text-center text-xs text-ink-faint">{t("practice.submitHint")}</p>
-        </section>
-      </div>
+            {file && (
+              <p className="mt-3 truncate text-xs text-ink-faint">
+                {t("practice.selected")}: {file.name}
+                <button
+                  onClick={() => onPickFile(null)}
+                  className="ml-2 text-accent-600 hover:underline"
+                >
+                  {t("practice.remove")}
+                </button>
+              </p>
+            )}
+
+            {error && (
+              <p className="mt-3 rounded-lg bg-bad/[0.06] px-3 py-2 text-sm text-bad">{error}</p>
+            )}
+
+            <button
+              onClick={onSubmit}
+              disabled={submitting || !selected}
+              className="btn-primary mt-6 w-full"
+            >
+              {submitting ? t("practice.submitting") : t("practice.submit")}
+            </button>
+            <p className="mt-2.5 text-center text-xs text-ink-faint">{t("practice.submitHint")}</p>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

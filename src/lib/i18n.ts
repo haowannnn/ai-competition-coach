@@ -147,9 +147,25 @@ export const MESSAGES = {
   "booklet.problem": { zh: "第", en: "Problem" },
   "booklet.problemUnit": { zh: "题", en: "" },
   "booklet.printHint": {
-    zh: "在打印对话框中选择“另存为 PDF”即可下载。",
+    zh: "在打印对话框中选择「另存为 PDF」即可下载。",
     en: "In the print dialog, choose \"Save as PDF\" to download.",
   },
+
+  // Practice topic categories
+  "practice.category":  { zh: "选择板块", en: "Select topic" },
+  "practice.roll":      { zh: "换一题 ↺", en: "New question ↺" },
+  "practice.hint.show": { zh: "查看方法提示", en: "Show method hints" },
+  "practice.hint.hide": { zh: "收起提示", en: "Hide hints" },
+  "practice.noQs":      { zh: "该板块暂无题目", en: "No questions in this topic" },
+  "cat.permcomb":      { zh: "排列与组合",  en: "Permutations & Combinations" },
+  "cat.arithmetic":    { zh: "等差数列",    en: "Arithmetic Sequences" },
+  "cat.geometric":     { zh: "等比数列",    en: "Geometric Sequences" },
+  "cat.number_theory": { zh: "数论",        en: "Number Theory" },
+  "cat.geometry":      { zh: "几何",        en: "Geometry" },
+  "cat.algebra":       { zh: "代数与方程",  en: "Algebra & Equations" },
+  "cat.inequality":    { zh: "不等式",      en: "Inequalities" },
+  "cat.functions":     { zh: "函数",        en: "Functions" },
+  "cat.counting":      { zh: "容斥与鸽笼",  en: "Inclusion-Exclusion" },
 } as const;
 
 export type MessageKey = keyof typeof MESSAGES;
