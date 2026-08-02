@@ -153,6 +153,7 @@ export const MESSAGES = {
 
   // Practice topic categories
   "practice.category":  { zh: "选择板块", en: "Select topic" },
+  "practice.pickPrompt": { zh: "从左侧选择一个板块开始练习", en: "Pick a topic on the left to begin" },
   "practice.roll":      { zh: "换一题 ↺", en: "New question ↺" },
   "practice.hint.show": { zh: "查看方法提示", en: "Show method hints" },
   "practice.hint.hide": { zh: "收起提示", en: "Hide hints" },
