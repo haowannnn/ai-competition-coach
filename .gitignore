@@ -12,3 +12,6 @@ npm-debug.log*
 /public/uploads/*
 !/public/uploads/.gitkeep
 /data/store.json
+
+# TypeScript incremental build info
+*.tsbuildinfo

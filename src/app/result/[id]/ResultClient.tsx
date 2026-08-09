@@ -33,6 +33,10 @@ export default function ResultClient({ id }: { id: string }) {
     return <div className="h-96 animate-pulse rounded-xl2 bg-ink-line/50" />;
   }
 
+  // Prefer the AI-attributed error concept; fall back to the question's first tag.
+  const similarTag =
+    submission.aiResult.concept_tags?.[0] ?? question?.conceptTags?.[0] ?? null;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -86,9 +90,20 @@ export default function ResultClient({ id }: { id: string }) {
             </details>
           )}
 
-          <Link href="/practice" className="btn-ghost w-full">
-            {t("result.again")}
-          </Link>
+          {similarTag ? (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Link href={`/practice?tag=${similarTag}`} className="btn-primary flex-1 text-center">
+                {t("result.similar")}
+              </Link>
+              <Link href="/practice" className="btn-ghost flex-1 text-center">
+                {t("result.again")}
+              </Link>
+            </div>
+          ) : (
+            <Link href="/practice" className="btn-ghost w-full">
+              {t("result.again")}
+            </Link>
+          )}
         </div>
       </div>
     </div>

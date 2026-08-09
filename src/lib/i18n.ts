@@ -40,6 +40,12 @@ export const MESSAGES = {
   "dash.rec.title": { zh: "为你推荐的练习", en: "Recommended practice" },
   "dash.rec.sub": { zh: "针对正确率最低的知识点定制", en: "Targeted at your lowest-accuracy concepts" },
   "dash.rec.go": { zh: "去练习 →", en: "Practice →" },
+  "dash.review.title": { zh: "今日复习", en: "Today's review" },
+  "dash.review.sub": {
+    zh: "有错题到期，按记忆曲线该复习了",
+    en: "Mistakes are due for review on your memory schedule",
+  },
+  "dash.review.go": { zh: "开始复习 →", en: "Start review →" },
   "dash.empty.title": { zh: "还没有批改记录", en: "No grading records yet" },
   "dash.empty.body": {
     zh: "上传一份解题过程，AI 会自动批改、定位错误并归因到知识点。多做几题后，这里会生成你的专属学习画像。",
@@ -82,6 +88,7 @@ export const MESSAGES = {
   "result.yourUpload": { zh: "你上传的解答", en: "Your uploaded solution" },
   "result.showAnswer": { zh: "查看标准答案", en: "Show model answer" },
   "result.again": { zh: "再练一题", en: "Practice another" },
+  "result.similar": { zh: "练同类题", en: "Practice similar" },
   "result.correct": { zh: "回答正确", en: "Correct" },
   "result.wrong": { zh: "存在错误", en: "Has an error" },
   "result.badge": { zh: "AI 批改结果", en: "AI grading result" },
@@ -158,6 +165,41 @@ export const MESSAGES = {
   "practice.hint.show": { zh: "查看方法提示", en: "Show method hints" },
   "practice.hint.hide": { zh: "收起提示", en: "Hide hints" },
   "practice.noQs":      { zh: "该板块暂无题目", en: "No questions in this topic" },
+
+  // Practice modes (recommend / review / free) + deeplink context
+  "practice.mode.recommend": { zh: "推荐练习", en: "Recommended" },
+  "practice.mode.review":    { zh: "今日复习", en: "Today's review" },
+  "practice.mode.free":      { zh: "按板块",   en: "By topic" },
+  "practice.mode.recommend.hint": {
+    zh: "根据你的薄弱知识点与错题智能挑选，优先练最需要巩固的题目。",
+    en: "Picked from your weak concepts and mistakes — practices what needs it most.",
+  },
+  "practice.mode.review.hint": {
+    zh: "到期需要复习的错题，按间隔重复安排，及时巩固记忆。",
+    en: "Mistakes due for spaced review — reinforce them before you forget.",
+  },
+  "practice.context":     { zh: "为什么是这道题", en: "Why this problem" },
+  "practice.similarOf":   { zh: "同类题练习：", en: "Similar problems: " },
+  "practice.clearFilter": { zh: "清除筛选，回到推荐", en: "Clear filter · back to recommended" },
+  "practice.review.empty": {
+    zh: "今天没有到期复习的错题，做得不错！",
+    en: "Nothing due for review today — nice work!",
+  },
+
+  // Mistake book — mastery status, filters, per-entry meta
+  "mistakes.filter.all":        { zh: "全部",     en: "All" },
+  "mistakes.filter.unresolved": { zh: "待攻克",   en: "Unresolved" },
+  "mistakes.filter.reviewing":  { zh: "复习中",   en: "Reviewing" },
+  "mistakes.filter.mastered":   { zh: "已掌握",   en: "Mastered" },
+  "mistakes.status.unresolved": { zh: "待攻克",   en: "Unresolved" },
+  "mistakes.status.reviewing":  { zh: "复习中",   en: "Reviewing" },
+  "mistakes.status.mastered":   { zh: "已掌握",   en: "Mastered" },
+  "mistakes.due":         { zh: "今日待复习", en: "Due today" },
+  "mistakes.attempts":    { zh: "练习次数",   en: "Attempts" },
+  "mistakes.wrong":       { zh: "错误次数",   en: "Wrong" },
+  "mistakes.similar":     { zh: "练同类题 →", en: "Practice similar →" },
+  "mistakes.viewGrading": { zh: "查看批改",   en: "View grading" },
+
   "cat.permcomb":      { zh: "排列与组合",  en: "Permutations & Combinations" },
   "cat.arithmetic":    { zh: "等差数列",    en: "Arithmetic Sequences" },
   "cat.geometric":     { zh: "等比数列",    en: "Geometric Sequences" },

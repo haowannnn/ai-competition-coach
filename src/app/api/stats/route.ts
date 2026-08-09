@@ -7,6 +7,7 @@ import {
   recommendQuestions,
   overallAccuracy,
 } from "@/lib/stats";
+import { buildMistakeEntries, dueEntries } from "@/lib/review";
 import { questionTitle } from "@/lib/i18n";
 import type { Locale } from "@/lib/types";
 
@@ -19,9 +20,15 @@ export async function GET(req: NextRequest) {
   const questions = getQuestions();
   const submissions = await getSubmissions();
 
+  const entries = buildMistakeEntries(submissions, questions);
+  const due = dueEntries(entries);
+
   return NextResponse.json({
     totalSubmissions: submissions.length,
     overallAccuracy: overallAccuracy(submissions),
+    dueCount: due.length,
+    mistakeCount: entries.filter((e) => e.status !== "mastered").length,
+    masteredCount: entries.filter((e) => e.status === "mastered").length,
     domains: domainStats(submissions, questions, locale),
     tags: tagStats(submissions, questions, locale),
     errorPatterns: errorPatterns(submissions, locale),

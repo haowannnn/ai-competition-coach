@@ -20,6 +20,9 @@ interface Rec {
 interface StatsResponse {
   totalSubmissions: number;
   overallAccuracy: number;
+  dueCount: number;
+  mistakeCount: number;
+  masteredCount: number;
   domains: { domain: ConceptDomain; label: string; total: number; correct: number; accuracy: number }[];
   tags: { tagId: string; label: string; total: number; correct: number; accuracy: number }[];
   errorPatterns: { tagId: string; label: string; wrong: number; habitual: number }[];
@@ -81,6 +84,27 @@ export default function DashboardPage() {
             <Kpi label={t("dash.kpi.habitual")} value={`${habitualTotal}`} unit={t("unit.times")} />
             <Kpi label={t("dash.kpi.weak")} value={`${weakCount}`} unit={t("unit.count")} />
           </div>
+
+          {/* Today's review — spaced-repetition due items */}
+          {stats!.dueCount > 0 && (
+            <Link
+              href="/practice?mode=review"
+              className="group flex items-center justify-between gap-4 rounded-xl2 border border-accent-600/30 bg-accent-600/[0.06] p-5 transition-all hover:shadow-lift"
+            >
+              <div className="flex items-center gap-4">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-accent-600 text-base font-semibold text-paper">
+                  {stats!.dueCount}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">{t("dash.review.title")}</p>
+                  <p className="mt-0.5 text-xs text-ink-faint">{t("dash.review.sub")}</p>
+                </div>
+              </div>
+              <span className="shrink-0 text-xs font-medium text-accent-600 transition-transform group-hover:translate-x-0.5">
+                {t("dash.review.go")}
+              </span>
+            </Link>
+          )}
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <section className="card p-6">
