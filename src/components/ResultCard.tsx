@@ -3,6 +3,7 @@
 import type { AiResult } from "@/lib/types";
 import { TagBadge, ErrorTypeBadge } from "./badges";
 import { useLocale } from "./LocaleContext";
+import MathText from "./MathText";
 
 // Renders the structured AI grading result. Used on the result page and
 // inside the mistakes book.
@@ -36,16 +37,16 @@ export default function ResultCard({ result }: { result: AiResult }) {
 
       <div className="space-y-6 px-6 py-6">
         <Section title={t("result.sec.recognized")}>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
+          <MathText className="block whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
             {result.recognized_content}
-          </p>
+          </MathText>
         </Section>
 
         {!correct && result.error_step && (
           <Section title={t("result.sec.error")}>
-            <p className="rounded-xl border border-bad/15 bg-bad/[0.04] px-4 py-3 text-sm leading-relaxed text-ink">
+            <MathText className="block rounded-xl border border-bad/15 bg-bad/[0.04] px-4 py-3 text-sm leading-relaxed text-ink">
               {result.error_step}
-            </p>
+            </MathText>
           </Section>
         )}
 
@@ -60,9 +61,9 @@ export default function ResultCard({ result }: { result: AiResult }) {
         )}
 
         <Section title={t("result.sec.feedback")}>
-          <p className="rounded-xl bg-canvas px-4 py-3.5 text-sm leading-relaxed text-ink-soft">
+          <MathText className="block rounded-xl bg-canvas px-4 py-3.5 text-sm leading-relaxed text-ink-soft">
             {result.feedback}
-          </p>
+          </MathText>
         </Section>
       </div>
     </div>

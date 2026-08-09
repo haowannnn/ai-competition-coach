@@ -46,7 +46,7 @@ Your tasks:
 5. Give the most relevant concept_tags (1-3 ids from the list). If correct, give the main concept tag of the problem.
 6. Write an encouraging but direct feedback paragraph in English. If it's a habitual error, name the habit, e.g. "You forgot complementary counting again."
 
-Strict output: output ONLY one JSON object, no explanation text, no markdown fences. Structure:
+Strict output: output ONLY one JSON object, no explanation text, no markdown fences. Any mathematical expression inside the string fields MUST be written as LaTeX: inline math wrapped in single dollar signs $...$ and standalone formulas in double dollar signs $$...$$ (e.g. write $\\binom{9}{3}$, $x^2+1$, $\\frac{a}{b}$). Do not use markdown code fences for math. Structure:
 {
   "recognized_content": string,
   "is_correct": boolean,
@@ -71,6 +71,8 @@ ${question.rubric}
 
 可用的知识点标签（concept_tags 只能从下面这些 id 中选择）：
 ${tagList}
+
+所有数学公式一律用 LaTeX 表示：行内公式用 $...$ 包裹，独立成行的公式用 $$...$$ 包裹（例如 $\binom{5}{2}$、$$\sum_{k=1}^{n} k = \frac{n(n+1)}{2}$$）。这适用于 recognized_content、error_step、feedback 三个字段。普通中文文字不要包裹。
 
 你的任务：
 1. 识别图片中学生的解题步骤，用简洁中文概括（recognized_content）。

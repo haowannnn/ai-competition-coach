@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLocale } from "@/components/LocaleContext";
 import ResultCard from "@/components/ResultCard";
 import { DifficultyBadge, DomainBadge } from "@/components/badges";
+import MathText from "@/components/MathText";
 import { questionTitle, questionContent, questionAnswer } from "@/lib/i18n";
 import type { Submission, Question } from "@/lib/types";
 
@@ -58,9 +59,9 @@ export default function ResultClient({ id }: { id: string }) {
                 <DifficultyBadge difficulty={question.difficulty} />
               </div>
               <h1 className="mb-2.5 text-xl font-semibold">{questionTitle(question, locale)}</h1>
-              <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink-soft">
+              <MathText className="block whitespace-pre-wrap text-[15px] leading-relaxed text-ink-soft">
                 {questionContent(question, locale)}
-              </p>
+              </MathText>
             </section>
           )}
 
@@ -84,9 +85,9 @@ export default function ResultClient({ id }: { id: string }) {
               <summary className="cursor-pointer text-sm font-medium text-ink-soft">
                 {t("result.showAnswer")}
               </summary>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
+              <MathText className="mt-3 block whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
                 {questionAnswer(question, locale)}
-              </p>
+              </MathText>
             </details>
           )}
 

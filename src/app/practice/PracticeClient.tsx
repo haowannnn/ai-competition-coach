@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "@/components/LocaleContext";
 import { DifficultyBadge, DomainBadge, TagBadge } from "@/components/badges";
+import MathText from "@/components/MathText";
 import { questionContent } from "@/lib/i18n";
 import { tagLabel } from "@/lib/concepts";
 import { CATEGORY_META } from "@/lib/seed";
@@ -325,9 +326,9 @@ export default function PracticeClient() {
                   <DifficultyBadge difficulty={selected.difficulty} />
                 </div>
 
-                <p className="mt-5 whitespace-pre-wrap text-[15px] leading-relaxed text-ink-soft">
+                <MathText className="mt-5 block text-[15px] leading-relaxed text-ink-soft">
                   {questionContent(selected, locale)}
-                </p>
+                </MathText>
 
                 {selected.conceptTags.length > 0 && (
                   <div className="mt-5">
