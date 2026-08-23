@@ -6,6 +6,7 @@ import { useLocale } from "@/components/LocaleContext";
 import ResultCard from "@/components/ResultCard";
 import { DifficultyBadge, DomainBadge } from "@/components/badges";
 import MathText from "@/components/MathText";
+import TutorChat from "@/components/TutorChat";
 import { questionTitle, questionContent, questionAnswer } from "@/lib/i18n";
 import type { Submission, Question } from "@/lib/types";
 
@@ -79,6 +80,8 @@ export default function ResultClient({ id }: { id: string }) {
         {/* Right: AI result */}
         <div className="space-y-4">
           <ResultCard result={submission.aiResult} />
+
+          <TutorChat submissionId={submission.id} />
 
           {question && (
             <details className="card p-6">

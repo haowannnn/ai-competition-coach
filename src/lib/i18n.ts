@@ -37,6 +37,13 @@ export const MESSAGES = {
   "dash.errors.habitualN": { zh: "其中习惯性错误", en: "of which habitual" },
   "dash.errors.repeat": { zh: "易反复出错", en: "Recurring" },
   "dash.errors.none": { zh: "太棒了，暂时没有明显的错误模式。", en: "Great — no clear error patterns yet." },
+  "dash.trend.title": { zh: "学习曲线", en: "Learning trajectory" },
+  "dash.trend.sub": {
+    zh: "正确率随练习次数的变化 · 近期状态回升即在进步",
+    en: "Accuracy over attempts · a rising recent line means you're improving",
+  },
+  "dash.trend.rolling": { zh: "近期正确率", en: "Recent form" },
+  "dash.trend.cumulative": { zh: "累计正确率", en: "Cumulative" },
   "dash.rec.title": { zh: "为你推荐的练习", en: "Recommended practice" },
   "dash.rec.sub": { zh: "针对正确率最低的知识点定制", en: "Targeted at your lowest-accuracy concepts" },
   "dash.rec.go": { zh: "去练习 →", en: "Practice →" },
@@ -98,6 +105,15 @@ export const MESSAGES = {
   "result.sec.feedback": { zh: "AI 反馈", en: "AI feedback" },
   "result.mock": { zh: "示例批改", en: "Sample grading" },
   "result.notfound": { zh: "记录不存在", en: "Record not found" },
+
+  // Socratic tutor chat
+  "tutor.trigger": { zh: "我还是不懂，问问 AI 私教", en: "Still don't get it — ask the AI tutor" },
+  "tutor.title": { zh: "AI 私教", en: "AI tutor" },
+  "tutor.sub": { zh: "循循善诱，带你自己想出来", en: "Guiding questions, not just answers" },
+  "tutor.opener": { zh: "我还是没看懂这道题，能一步步带我想吗？", en: "I still don't understand this problem — can you walk me through it step by step?" },
+  "tutor.placeholder": { zh: "说说你的想法或不懂的地方…", en: "Share your thinking or what's unclear…" },
+  "tutor.send": { zh: "发送", en: "Send" },
+  "tutor.error": { zh: "回复失败，请重试。", en: "Failed to reply — please try again." },
 
   // Mistakes
   "mistakes.title": { zh: "错题本", en: "Mistake Book" },

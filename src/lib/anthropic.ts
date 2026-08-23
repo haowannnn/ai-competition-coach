@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { AiResult, Question, Locale } from "./types";
-import { CONCEPT_TAGS } from "./concepts";
+import { CONCEPT_TAGS, tagLabel } from "./concepts";
 
 const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 
@@ -199,6 +199,148 @@ export function mockGrade(question: Question, locale: Locale): AiResult {
 
 export function hasApiKey(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Socratic tutor — the "I still don't get it" follow-up conversation.
+//
+// This is what separates a tutor from a grader: instead of dumping the full
+// solution, the tutor asks guiding questions that lead the student to the next
+// step themselves. It has the full grading context (what the student wrote,
+// where they went wrong, the model answer) so its hints are specific.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface TutorMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+function buildTutorPrompt(question: Question, result: AiResult, locale: Locale): string {
+  if (locale === "en") {
+    return `You are a warm, patient competition-math tutor helping a student one-on-one, right after their solution was graded. Your teaching style is SOCRATIC: you lead the student to the answer with small guiding questions and hints — you do NOT hand over the full solution.
+
+The problem:
+${question.contentEn}
+
+Model answer (for YOUR reference — do not reveal it wholesale):
+${question.standardAnswerEn}
+
+What the student wrote (AI recognition):
+${result.recognized_content}
+
+Grading verdict: ${result.is_correct ? "correct" : "incorrect"}${
+      result.error_step ? `\nWhere it went wrong: ${result.error_step}` : ""
+    }
+Earlier feedback the student already saw:
+${result.feedback}
+
+Rules for every reply:
+- Reply in English.
+- Keep it short: 2-4 sentences, usually ending in ONE guiding question.
+- Give ONE small hint or ask ONE question at a time — never the whole solution.
+- Build on what the student just said. If they answer your question correctly, confirm warmly and nudge to the next step.
+- Only if the student is clearly stuck after several tries (or explicitly asks for the answer) may you reveal the next concrete step — and even then, just that one step.
+- Use LaTeX for math: inline $...$, display $$...$$.
+- Be encouraging and human, never condescending. Plain conversational text, no JSON, no markdown headers.`;
+  }
+
+  return `你是一位温和、有耐心的竞赛数学 1v1 私教，学生刚拿到这道题的批改结果，想进一步弄懂。你的教学风格是"苏格拉底式"：用一个个小问题和提示引导学生自己想到下一步，绝不直接把完整解法丢给他。
+
+题目：
+${question.content}
+
+标准答案（仅供你参考，不要整段照搬给学生）：
+${question.standardAnswer}
+
+学生写的内容（AI 识别）：
+${result.recognized_content}
+
+批改结论：${result.is_correct ? "正确" : "错误"}${
+    result.error_step ? `\n出错的地方：${result.error_step}` : ""
+  }
+学生已经看过的反馈：
+${result.feedback}
+
+每次回复的规则：
+- 用中文回复。
+- 简短：2-4 句话，通常以一个引导性问题结尾。
+- 一次只给一个小提示或问一个问题，绝不一次性给出完整解法。
+- 顺着学生刚说的话接。如果他答对了你的问题，先肯定，再引到下一步。
+- 只有当学生明显卡了很多次（或直接要答案）时，才可以点出下一个具体步骤——而且也只点这一步。
+- 数学公式用 LaTeX：行内 $...$，独立 $$...$$。
+- 语气鼓励、像真人，不要居高临下。用自然的对话文字，不要 JSON、不要 markdown 标题。`;
+}
+
+// Deterministic mock tutor for when there's no API key. Escalates hints across
+// turns so the conversation still feels responsive in a demo.
+function mockTutor(
+  question: Question,
+  result: AiResult,
+  history: TutorMessage[],
+  locale: Locale
+): string {
+  // 0-based turn: the first user message (the implicit "I don't get it" opener)
+  // maps to lines[0]. Clamp so extra turns keep returning the final nudge.
+  const turn = Math.max(0, history.filter((m) => m.role === "user").length - 1);
+  const en = locale === "en";
+  const tag = result.concept_tags[0];
+
+  if (en) {
+    const opener = result.is_correct
+      ? "Nice — this one's already correct, so let's make sure you could redo it from scratch. What's the very first thing you'd set up here?"
+      : "Let's rebuild it together. Before any computing — what is the problem actually asking you to count or find?";
+    const lines = [
+      opener,
+      `Good start. Think about the method${tag ? ` (${tagLabel(tag, locale)})` : ""}: is it easier to count what you want directly, or to count the opposite and subtract? Which side looks smaller?`,
+      result.error_step
+        ? `Right — that's the key. Look again at this step: ${result.error_step} Can you redo just that line?`
+        : "Exactly. Now carry that idea one step further — what expression do you get?",
+      "You're basically there. Put the pieces together and tell me the final number — I'll check it.",
+    ];
+    return lines[Math.min(turn, lines.length - 1)];
+  }
+
+  const opener = result.is_correct
+    ? "这道其实已经做对了，那我们确认一下你能不能从头独立再做一遍。你觉得第一步该先设什么、先算什么？"
+    : "我们一起把它重搭一遍。先别急着算——这道题到底要你求什么、数什么？用你自己的话说说。";
+  const lines = [
+    opener,
+    `不错。想想方法${tag ? `（${tagLabel(tag, locale)}）` : ""}：是正面直接数容易，还是数反面再减更容易？哪一边的情况更少？`,
+    result.error_step
+      ? `对，就是这里。再看这一步：${result.error_step} 你能只把这一行重新算一遍吗？`
+      : "对。那把这个想法再往下推一步——你会得到什么式子？",
+    "基本就差临门一脚了。把各部分拼起来，把最后的数告诉我，我帮你核对。",
+  ];
+  return lines[Math.min(turn, lines.length - 1)];
+}
+
+// Generate the tutor's next reply given the grading context and chat history.
+export async function tutorReply(
+  question: Question,
+  result: AiResult,
+  history: TutorMessage[],
+  locale: Locale
+): Promise<{ reply: string; source: "claude" | "mock" }> {
+  if (!hasApiKey()) {
+    return { reply: mockTutor(question, result, history, locale), source: "mock" };
+  }
+
+  try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const message = await client.messages.create({
+      model: DEFAULT_MODEL,
+      max_tokens: 500,
+      system: buildTutorPrompt(question, result, locale),
+      messages: history.map((m) => ({ role: m.role, content: m.content })),
+    });
+    const textPart = message.content.find((c) => c.type === "text");
+    const reply = textPart && textPart.type === "text" ? textPart.text.trim() : "";
+    if (!reply) throw new Error("Empty tutor reply");
+    return { reply, source: "claude" };
+  } catch (err) {
+    console.error("[tutorReply] Claude call failed, using mock:", err);
+    return { reply: mockTutor(question, result, history, locale), source: "mock" };
+  }
 }
 
 // Grade a submission. Falls back to mock if no key or on API error.

@@ -6,6 +6,7 @@ import {
   errorPatterns,
   recommendQuestions,
   overallAccuracy,
+  accuracyTrajectory,
 } from "@/lib/stats";
 import { buildMistakeEntries, dueEntries } from "@/lib/review";
 import { questionTitle } from "@/lib/i18n";
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
     dueCount: due.length,
     mistakeCount: entries.filter((e) => e.status !== "mastered").length,
     masteredCount: entries.filter((e) => e.status === "mastered").length,
+    trajectory: accuracyTrajectory(submissions),
     domains: domainStats(submissions, questions, locale),
     tags: tagStats(submissions, questions, locale),
     errorPatterns: errorPatterns(submissions, locale),

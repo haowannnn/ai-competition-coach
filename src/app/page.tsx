@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleContext";
-import { AccuracyRadar, TagAccuracyBar } from "@/components/Charts";
+import { AccuracyRadar, TagAccuracyBar, TrajectoryLine } from "@/components/Charts";
 import { DifficultyBadge, DomainBadge } from "@/components/badges";
 import type { ConceptDomain, Difficulty } from "@/lib/types";
 
@@ -17,12 +17,20 @@ interface Rec {
   isFresh: boolean;
 }
 
+interface TrajectoryPoint {
+  index: number;
+  date: string;
+  cumulative: number;
+  rolling: number;
+}
+
 interface StatsResponse {
   totalSubmissions: number;
   overallAccuracy: number;
   dueCount: number;
   mistakeCount: number;
   masteredCount: number;
+  trajectory: TrajectoryPoint[];
   domains: { domain: ConceptDomain; label: string; total: number; correct: number; accuracy: number }[];
   tags: { tagId: string; label: string; total: number; correct: number; accuracy: number }[];
   errorPatterns: { tagId: string; label: string; wrong: number; habitual: number }[];
@@ -104,6 +112,36 @@ export default function DashboardPage() {
                 {t("dash.review.go")}
               </span>
             </Link>
+          )}
+
+          {/* Learning trajectory — accuracy over time */}
+          {stats!.trajectory.length >= 3 && (
+            <section className="card p-6">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-[15px] font-semibold">{t("dash.trend.title")}</h2>
+                  <p className="mb-2 mt-1 text-xs text-ink-faint">{t("dash.trend.sub")}</p>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-ink-faint">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block h-0.5 w-4 rounded bg-accent-600" />
+                    {t("dash.trend.rolling")}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block h-0 w-4 border-t-2 border-dashed border-ink-faint" />
+                    {t("dash.trend.cumulative")}
+                  </span>
+                </div>
+              </div>
+              <TrajectoryLine
+                data={stats!.trajectory.map((p) => ({
+                  index: p.index,
+                  date: p.date,
+                  cumulative: p.cumulative,
+                  rolling: p.rolling,
+                }))}
+              />
+            </section>
           )}
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

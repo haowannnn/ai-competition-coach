@@ -175,4 +175,43 @@ export function overallAccuracy(submissions: Submission[]): number {
   return Math.round((correct / submissions.length) * 100);
 }
 
+// ── Learning trajectory ──────────────────────────────────────────────────────
+// Accuracy over time. For each attempt (oldest → newest) we report the
+// cumulative accuracy up to that point plus a rolling accuracy over the last
+// WINDOW attempts. The rolling line shows recent form (it can rise even when the
+// cumulative line is still weighed down by early mistakes) — the "getting
+// better" story that sells an education product.
+export interface TrajectoryPoint {
+  index: number; // 1-based attempt number
+  date: string; // YYYY-MM-DD of the attempt
+  correct: boolean; // was this single attempt correct
+  cumulative: number; // 0-100 cumulative accuracy through this attempt
+  rolling: number; // 0-100 accuracy over the last WINDOW attempts
+}
+
+const TRAJECTORY_WINDOW = 5;
+
+export function accuracyTrajectory(submissions: Submission[]): TrajectoryPoint[] {
+  const ordered = [...submissions].sort((a, b) =>
+    a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0
+  );
+  const points: TrajectoryPoint[] = [];
+  let correctSoFar = 0;
+  for (let i = 0; i < ordered.length; i++) {
+    const isCorrect = ordered[i].aiResult.is_correct;
+    if (isCorrect) correctSoFar += 1;
+    const windowStart = Math.max(0, i - TRAJECTORY_WINDOW + 1);
+    const windowSlice = ordered.slice(windowStart, i + 1);
+    const windowCorrect = windowSlice.filter((s) => s.aiResult.is_correct).length;
+    points.push({
+      index: i + 1,
+      date: ordered[i].createdAt.slice(0, 10),
+      correct: isCorrect,
+      cumulative: Math.round((correctSoFar / (i + 1)) * 100),
+      rolling: Math.round((windowCorrect / windowSlice.length) * 100),
+    });
+  }
+  return points;
+}
+
 export { CONCEPT_TAGS };

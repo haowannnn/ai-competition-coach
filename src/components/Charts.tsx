@@ -9,6 +9,10 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  LineChart,
+  Line,
+  CartesianGrid,
+  ReferenceLine,
   XAxis,
   YAxis,
   Tooltip,
@@ -104,6 +108,70 @@ export function TagAccuracyBar({ data }: { data: TagDatum[] }) {
           ))}
         </Bar>
       </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+export interface TrajectoryDatum {
+  index: number;
+  date: string;
+  cumulative: number;
+  rolling: number;
+}
+
+// Accuracy-over-time line chart. Two lines: cumulative (all attempts) and
+// rolling (recent form). The rolling line rising above cumulative is the
+// visible "getting better" signal.
+export function TrajectoryLine({ data }: { data: TrajectoryDatum[] }) {
+  const { t } = useLocale();
+  return (
+    <ResponsiveContainer width="100%" height={280}>
+      <LineChart data={data} margin={{ left: -16, right: 16, top: 8, bottom: 4 }}>
+        <CartesianGrid stroke={LINE} vertical={false} />
+        <XAxis
+          dataKey="index"
+          tick={{ fill: FAINT, fontSize: 11 }}
+          axisLine={{ stroke: LINE }}
+          tickLine={false}
+        />
+        <YAxis
+          domain={[0, 100]}
+          tick={{ fill: FAINT, fontSize: 10 }}
+          tickCount={5}
+          axisLine={false}
+          tickLine={false}
+          unit="%"
+        />
+        <ReferenceLine y={80} stroke="#3f9d6d" strokeDasharray="4 4" strokeOpacity={0.5} />
+        <Tooltip
+          {...tooltipStyle()}
+          labelFormatter={(v) => `#${v}`}
+          formatter={(val: number, name: string) => [
+            `${val}%`,
+            name === "rolling" ? t("dash.trend.rolling") : t("dash.trend.cumulative"),
+          ]}
+        />
+        <Line
+          type="monotone"
+          dataKey="cumulative"
+          name="cumulative"
+          stroke={FAINT}
+          strokeWidth={1.5}
+          strokeDasharray="5 4"
+          dot={false}
+          isAnimationActive={false}
+        />
+        <Line
+          type="monotone"
+          dataKey="rolling"
+          name="rolling"
+          stroke={ACCENT}
+          strokeWidth={2.5}
+          dot={{ r: 2.5, fill: ACCENT, strokeWidth: 0 }}
+          activeDot={{ r: 4 }}
+          isAnimationActive={false}
+        />
+      </LineChart>
     </ResponsiveContainer>
   );
 }

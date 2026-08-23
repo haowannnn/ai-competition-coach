@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import type { Submission } from "../types";
 import type { SubmissionStore } from "./types";
+import { demoSubmissions, isDemoEnabled } from "../demoData";
 
 // File-backed store. Submissions are persisted to data/store.json, so records
 // survive server restarts and browser sessions ("saved" locally). This stands
@@ -29,12 +30,21 @@ function persist(data: FileShape): void {
   fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2), "utf-8");
 }
 
+// Demo history is layered underneath any real submissions so the dashboard is
+// never empty for a first-time visitor (e.g. an award judge opening the link),
+// while anything the visitor uploads is persisted and shown on top. Demo ids
+// are prefixed "demo-" so they never collide with real submissions.
+function withDemo(real: Submission[]): Submission[] {
+  if (!isDemoEnabled()) return real;
+  return [...real, ...demoSubmissions()];
+}
+
 export const fileStore: SubmissionStore = {
   async list() {
-    return [...load().submissions].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    return withDemo(load().submissions).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   },
   async get(id) {
-    return load().submissions.find((s) => s.id === id);
+    return withDemo(load().submissions).find((s) => s.id === id);
   },
   async add(sub) {
     const data = load();
