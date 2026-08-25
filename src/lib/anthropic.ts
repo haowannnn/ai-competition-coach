@@ -1,10 +1,14 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { AiResult, Question, Locale } from "./types";
 import { CONCEPT_TAGS, tagLabel } from "./concepts";
 
-const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 
-// Media types Claude's vision input accepts.
+function apiKey(): string | undefined {
+  return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+}
+
+// Media types Gemini's vision input accepts.
 type ImgMedia = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
 function mediaTypeFor(ext: string): ImgMedia {
@@ -198,7 +202,7 @@ export function mockGrade(question: Question, locale: Locale): AiResult {
 }
 
 export function hasApiKey(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+  return Boolean(apiKey());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -320,25 +324,35 @@ export async function tutorReply(
   result: AiResult,
   history: TutorMessage[],
   locale: Locale
-): Promise<{ reply: string; source: "claude" | "mock" }> {
-  if (!hasApiKey()) {
+): Promise<{ reply: string; source: "gemini" | "mock" }> {
+  const key = apiKey();
+  if (!key) {
     return { reply: mockTutor(question, result, history, locale), source: "mock" };
   }
 
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const message = await client.messages.create({
+    const client = new GoogleGenerativeAI(key);
+    const model = client.getGenerativeModel({
       model: DEFAULT_MODEL,
-      max_tokens: 500,
-      system: buildTutorPrompt(question, result, locale),
-      messages: history.map((m) => ({ role: m.role, content: m.content })),
+      systemInstruction: buildTutorPrompt(question, result, locale),
     });
-    const textPart = message.content.find((c) => c.type === "text");
-    const reply = textPart && textPart.type === "text" ? textPart.text.trim() : "";
+    // Gemini needs a leading "user" turn and alternating roles. The last message
+    // is the current user turn; everything before it is prior history.
+    const prior = history.slice(0, -1);
+    const last = history[history.length - 1];
+    const chat = model.startChat({
+      history: prior.map((m) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      })),
+      generationConfig: { maxOutputTokens: 500 },
+    });
+    const res = await chat.sendMessage(last?.content ?? "");
+    const reply = res.response.text().trim();
     if (!reply) throw new Error("Empty tutor reply");
-    return { reply, source: "claude" };
+    return { reply, source: "gemini" };
   } catch (err) {
-    console.error("[tutorReply] Claude call failed, using mock:", err);
+    console.error("[tutorReply] Gemini call failed, using mock:", err);
     return { reply: mockTutor(question, result, history, locale), source: "mock" };
   }
 }
@@ -350,55 +364,47 @@ export async function gradeSubmission(
   ext: string,
   locale: Locale
 ): Promise<AiResult> {
-  if (!hasApiKey()) {
+  const key = apiKey();
+  if (!key) {
     const mock = mockGrade(question, locale);
     mock._locale = locale;
     return mock;
   }
 
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const message = await client.messages.create({
+    const client = new GoogleGenerativeAI(key);
+    const model = client.getGenerativeModel({
       model: DEFAULT_MODEL,
-      max_tokens: 1200,
-      system: buildSystemPrompt(question, locale),
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: mediaTypeFor(ext),
-                data: imageBase64,
-              },
-            },
-            {
-              type: "text",
-              text:
-                locale === "en"
-                  ? "This is my solution. Please grade it as instructed and output JSON only."
-                  : "这是我的解题过程，请按要求批改并只输出 JSON。",
-            },
-          ],
-        },
-      ],
+      systemInstruction: buildSystemPrompt(question, locale),
+      generationConfig: { responseMimeType: "application/json" },
     });
+    const res = await model.generateContent([
+      {
+        inlineData: {
+          mimeType: mediaTypeFor(ext),
+          data: imageBase64,
+        },
+      },
+      {
+        text:
+          locale === "en"
+            ? "This is my solution. Please grade it as instructed and output JSON only."
+            : "这是我的解题过程，请按要求批改并只输出 JSON。",
+      },
+    ]);
 
-    const textPart = message.content.find((c) => c.type === "text");
-    const raw = textPart && textPart.type === "text" ? textPart.text : "";
+    const raw = res.response.text();
     const jsonStr = extractJson(raw);
     if (!jsonStr) throw new Error("No JSON found in model output");
     const parsed = JSON.parse(jsonStr);
     const result = normalize(parsed, locale);
-    result._source = "claude";
+    result._source = "gemini";
     result._model = DEFAULT_MODEL;
     result._locale = locale;
     return result;
   } catch (err) {
     // Graceful degradation — keep the demo alive even if the API hiccups.
-    console.error("[gradeSubmission] Claude call failed, using mock:", err);
+    console.error("[gradeSubmission] Gemini call failed, using mock:", err);
     const mock = mockGrade(question, locale);
     mock._locale = locale;
     const prefix =

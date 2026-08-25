@@ -51,7 +51,7 @@ export interface AiResult {
   concept_tags: string[]; // ConceptTag ids the error maps to
   feedback: string;
   // Non-model metadata added by the server.
-  _source?: "claude" | "mock";
+  _source?: "gemini" | "mock";
   _model?: string;
   _locale?: Locale;
 }
